@@ -1,45 +1,31 @@
-// this is what you would do if you liked things to be easy:
-// var stringifyJSON = JSON.stringify;
-
-// but you don't so you're going to write it from scratch:
-
-
-// FIRST PASS, NEEDS LOGICAL AND READABILITY REVISIONS
 var stringifyJSON = function(obj) {
-  var string = '';
+  if (obj === null) return 'null';
+  if (obj === undefined) return '{}';
+  if (typeof obj === 'function') return '{}';
+  if (typeof obj === 'boolean') return String(obj);
+  if (typeof obj === 'string')  return `"${obj}"`;
+  if (typeof obj === 'number') return String(obj);
 
-  if (Array.isArray(obj)) {
-    string += '[';
-    if (obj.length > 0) {
-      for (var i = 0; i < obj.length; i++) {
-        string += stringifyJSON(obj[i]) + ',';
-      }
-      string = string.slice(0, -1);
+  if (typeof obj === 'object') {
+    var contents = '';
+
+    if (Array.isArray(obj)) {
+      obj.map(function(item) {
+        var itemAsString = stringifyJSON(item);
+        if (contents === '') contents += itemAsString;
+        else contents += `,${itemAsString}`;
+      });
+      return `[${contents}]`;
     }
-    string += ']';
-  } else if (obj === undefined || typeof obj === 'function') {
-    string += '{}';
-  } else if (typeof obj === 'object') {
-    if (obj === null) {
-      string+= String(null);
-    } else {
-      string += '{';
-      if (Object.keys(obj).length > 0) {
-        var removeComma = false;
-        for (var key in obj) {
-          if (key !== 'functions' && key !== 'undefined') {
-            string += '"' + key + '":' + stringifyJSON(obj[key]) + ','; 
-            removeComma = true;
-          }
+    else {
+      Object.keys(obj).map(function(key) {
+        var propertyAsString = `${stringifyJSON(key)}:${stringifyJSON(obj[key])}`;
+        if (propertyAsString !== '"functions":{}' && propertyAsString !== '"undefined":{}') {
+          if (contents === '') contents += propertyAsString;
+          else contents += `,${propertyAsString}`;
         }
-        string = (removeComma) ? string.slice(0, -1): string;
-      }
-      string += '}';
-    } 
-  } else if (typeof obj === 'string') {
-    string += '"' + obj + '"';
-  } else {
-    string += String(obj);
+      });
+      return `{${contents}}`;
+    }
   }
-  return string;
-};
+}
