@@ -31,10 +31,10 @@ var parseJSON = function(json) {
       else {
         if (char === '[') {
           depth++;
-          expectedChars.push(']');
+          expectedChars.unshift(']');
         } else if (char === '{') {
           depth++;
-          expectedChars.push('}');
+          expectedChars.unshift('}');
         } else if (char === expectedChars[0] && depth > 0) {
           depth--;
           expectedChars.shift();
@@ -67,8 +67,25 @@ var parseJSON = function(json) {
       });
     return result;
   }
+  if (type === 'string') {
+    var result = '';
+    var escaped = false;
+
+    json.slice(1,-1)
+      .split('')
+      .forEach(function(char) {
+        if (char !== '\\') {
+          if (escaped) escaped = false;
+          result += char;
+        } else {
+          if (escaped) result += char;
+          escaped = !escaped;
+        }
+      });
+
+    return result;
+  }
   if (type === 'ignore') return;
-  if (type === 'string') return json.slice(1, -1);
   if (type === 'other') {
     if (json === 'null') return null;
     if (json === 'true') return true;
